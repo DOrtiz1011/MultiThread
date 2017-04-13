@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MultiThread1
 {
@@ -49,61 +47,82 @@ namespace MultiThread1
      *      The primary thread MAY NOT use the known 5 second delay noted in #2 above 
      *      OR the known number of lines in the input list to assist in determining when to end
      *      (e.g. The primary thread must operate in a manner where the delay length and data size is unknown)
-     *           
-     *      
+     *
+     *
      * Expected Final Output
      *      String 1 
      *      String 2
      *      String 3
      *      String 4
-     *      String 5                 
-     * 
+     *      String 5
      */
-    class Program
+
+    internal sealed class Program
     {
-        // Input Data
-        private List<string> _inputList = new List<string>()
+        private static readonly List<string> _inputList = new List<string> { "String 1", "String 2", "String 3", "String 4", "String 5" };
+        private readonly List<string> _outputList = new List<string>();
+        private readonly int inputCount = _inputList.Count;
+        private int outputCount;
+        private const int sleep = 5000;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CopyValue()
         {
-            "String 1",
-            "String 2",
-            "String 3",
-            "String 4",
-            "String 5",
-        };
+            if (_inputList.Count > 0)
+            {
+                var value = _inputList.First();
+                _inputList.RemoveAt(0);
+                _outputList.Add(value);
+                Thread.Sleep(sleep);
+            }
+        }
 
-        // Output Data
-        private List<string> _outputList = new List<string>();
-
-        // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Place any Code and/or instance vars required by the implementation here
-        // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
+        /// <summary>
+        /// 
+        /// </summary>
+        private void WriteValue()
+        {
+            if (outputCount < _outputList.Count)
+            {
+                Console.WriteLine($"{_outputList.Last()} {DateTime.Now}");
+                outputCount = _outputList.Count;
+            }
+        }
 
         /// <summary>
         /// Use this Method as the program's primary thread
         /// </summary>
-        public void Run(string[] args)
+        private void Run()
         {
-            // ENTER PRIMARY THREAD CODE HERE
+            Console.WriteLine($"*** START {DateTime.Now} ***");
+            Console.WriteLine();
 
+            var thread = new Thread(CopyValue);
 
+            while (outputCount < inputCount)
+            {
+                if (!thread.IsAlive)
+                {
+                    thread = new Thread(CopyValue) { IsBackground = true };
+                    thread.Start();
+                }
 
+                WriteValue();
+            }
 
-
+            Console.WriteLine();
+            Console.WriteLine($"*** END {DateTime.Now} ***");
+            Console.ReadLine();
         }
 
-
-        // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        static void Main(string[] args)
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void Main()
         {
-            new Program().Run(args);
+            new Program().Run();
         }
     }
 }
