@@ -54,17 +54,21 @@ namespace MultiThread1
         private static readonly List<string> _inputList = new List<string>();// { "String 1", "String 2", "String 3", "String 4", "String 5" };
         private readonly List<string> _outputList = new List<string>();
         private int outputCount;
+        private static readonly int numStrings = new Random().Next(5, 12);
 
         private void CopyValue()
         {
-            Thread.Sleep(5000);
-
-            var value = _inputList.FirstOrDefault();
-
-            if (value != null)
+            while (_inputList.Count > 0)
             {
-                _inputList.RemoveAt(0);
-                _outputList.Add(value);
+                Thread.Sleep(5000);
+
+                var value = _inputList.FirstOrDefault();
+
+                if (value != null)
+                {
+                    _inputList.RemoveAt(0);
+                    _outputList.Add(value);
+                }
             }
         }
 
@@ -77,10 +81,8 @@ namespace MultiThread1
             }
         }
 
-        private static void RandomInput()
+        private static void AddInput()
         {
-            var numStrings = new Random().Next(5, 12);
-
             for (var i = 1; i <= numStrings; i++)
             {
                 _inputList.Add($"String {i}");
@@ -90,20 +92,16 @@ namespace MultiThread1
         private void Run()
         {
             Console.WriteLine($"*** START {DateTime.Now} ***");
+            Console.WriteLine($"{numStrings} strings");
             Console.WriteLine();
 
-            RandomInput();
+            AddInput();
 
             var thread = new Thread(CopyValue);
+            thread.Start();
 
-            while (_inputList.Count > 0)
+            while (thread.IsAlive)
             {
-                if (!thread.IsAlive)
-                {
-                    thread = new Thread(CopyValue) { IsBackground = true };
-                    thread.Start();
-                }
-
                 WriteValue();
             }
 
